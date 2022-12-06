@@ -18,12 +18,7 @@ func checkDistinct(someString string) bool {
     for _, c := range someString {
         charCounts[c]++
     }
-    for _, count := range charCounts {
-        if count > 1 {
-            return false
-        }
-    }
-    return true
+    return len(charCounts) == len(someString)
 }
 
 func FindPacketStart(input string, packetLen int) int {
