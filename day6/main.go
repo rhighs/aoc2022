@@ -26,7 +26,7 @@ func checkDistinct(someString string) bool {
     return true
 }
 
-func findPackeStart(input string, packetLen int) int {
+func FindPacketStart(input string, packetLen int) int {
     for i := 0; i < len(input) - packetLen; i++ {
         if checkDistinct(input[i:i+packetLen]) {
             return i+packetLen
@@ -37,6 +37,6 @@ func findPackeStart(input string, packetLen int) int {
 
 func main() {
     input := readFile("./input.txt")
-    fmt.Println("p1:", findPackeStart(input, 4))
-    fmt.Println("p2:", findPackeStart(input, 14))
+    fmt.Println("p1:", FindPacketStart(input, 4))
+    fmt.Println("p2:", FindPacketStart(input, 14))
 }
