@@ -3,8 +3,6 @@ package main
 import (
     "fmt"
     "os"
-    "sort"
-    "strings"
 )
 
 func readFile(path string) string {
@@ -16,14 +14,16 @@ func readFile(path string) string {
 }
 
 func checkDistinct(someString string) bool {
-    chars := strings.Split(someString, "")
-	sort.Strings(chars)
-	for i := 1; i < len(chars); i++ {
-		if chars[i] == chars[i-1] {
-			return false
-		}
-	}
-	return true
+    charCounts := make(map[rune]int)
+    for _, c := range someString {
+        charCounts[c]++
+    }
+    for _, count := range charCounts {
+        if count > 1 {
+            return false
+        }
+    }
+    return true
 }
 
 func findPackeStart(input string, packetLen int) int {
