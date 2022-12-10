@@ -41,80 +41,59 @@ func adj(a, b Pos) bool {
 	return d.x <= 1 && d.y <= 1
 }
 
-func __reach(start, target Pos, step func(Pos)) Pos {
-	curr := start
-	for {
-		if adj(curr, target) {
-			break
-		}
-		xdist := target.x - curr.x
-		ydist := target.y - curr.y
+func chase(predator, prey Pos) Pos {
+    if !adj(predator, prey) {
+        xdist := prey.x - predator.x
+        ydist := prey.y - predator.y
 
-		if xdist != 0 && ydist != 0 {
-			curr.x += sgn(xdist)
-			curr.y += sgn(ydist)
-		} else if ydist == 0 {
-			curr.x += sgn(xdist)
-		} else if xdist == 0 {
-			curr.y += sgn(ydist)
-		}
-		step(curr)
-	}
-	return curr
+        if xdist != 0 && ydist != 0 {
+            predator.x += sgn(xdist)
+            predator.y += sgn(ydist)
+        } else if ydist == 0 {
+            predator.x += sgn(xdist)
+        } else if xdist == 0 {
+            predator.y += sgn(ydist)
+        }
+    }
+    return predator
 }
 
-func reach(start, target Pos) Pos {
-	return __reach(start, target, func(_ Pos) {})
-}
-
-func findPath(start, target Pos) []Pos {
-	var path []Pos
-	__reach(start, target, func(curr Pos) {
-		path = append(path, curr)
-	})
-	return path
-}
-
-func ropeMovement(inputLines []string, nknots int) int {
+func ropeMovement(input string, nknots int) int {
 	knots := make([]Pos, nknots)
 	visits := make(map[Pos]bool)
-	s := Pos{
-		x: 0,
-		y: 0,
-	}
-
 	for i := range knots {
-		knots[i] = s
+        knots[i] = Pos {}
 	}
 
 	visits[knots[0]] = true
 
-	for _, line := range inputLines {
+	for _, line := range strings.Split(input, "\n") {
 		move := strings.Split(strings.TrimSpace(line), " ")
 		value, _ := strconv.Atoi(move[1])
+        var tailPath []Pos
 
-		switch move[0] {
-		case "U":
-			knots[0].y += value
-		case "D":
-			knots[0].y -= value
-		case "R":
-			knots[0].x += value
-		case "L":
-			knots[0].x -= value
-		}
+        for i := 0; i < value; i++ {
+		    switch move[0] {
+		    case "U":
+		    	knots[0].y++
+		    case "D":
+		    	knots[0].y--
+		    case "R":
+		    	knots[0].x++
+		    case "L":
+		    	knots[0].x--
+		    }
 
-		for i := 1; i < nknots; i++ {
-			path := findPath(knots[i], knots[i-1])
-			if i == nknots-1 {
-				for _, p := range path {
-					visits[p] = true
-				}
-			}
-			if len(path) > 0 {
-				knots[i] = path[len(path)-1]
-			}
-		}
+		    for i := 1; i < nknots; i++ {
+		    	knots[i] = chase(knots[i], knots[i-1])
+		    	if i == nknots-1 {
+                    tailPath = append(tailPath, knots[i])
+		    	}
+		    }
+        }
+        for _, p := range tailPath {
+            visits[p] = true
+        }
 	}
 
 	return len(visits)
@@ -122,8 +101,6 @@ func ropeMovement(inputLines []string, nknots int) int {
 
 func main() {
 	input := strings.TrimSpace(readFile(os.Args[1]))
-	lines := strings.Split(input, "\n")
-	for i := 2; i < 11; i++ {
-		fmt.Println("p1:", i, ropeMovement(lines, i))
-	}
+	fmt.Println("p1:", ropeMovement(input, 2))
+    fmt.Println("p2:", ropeMovement(input, 10))
 }
