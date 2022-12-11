@@ -66,7 +66,7 @@ func parseInput(input string) (out []Monkey) {
     return
 }
 
-func monkeySim(ms []Monkey, nrounds int, worrydiv int) int {
+func monkeyBusiness(ms []Monkey, nrounds int, worrydiv int) int {
     var active []int
 
     mod := 1
@@ -122,12 +122,12 @@ func monkeySim(ms []Monkey, nrounds int, worrydiv int) int {
 
 func p1(input string) int {
     mks := parseInput(input)
-    return monkeySim(mks, 20, 3.0)
+    return monkeyBusiness(mks, 20, 3.0)
 }
 
 func p2(input string) int {
     mks := parseInput(input)
-    return monkeySim(mks, 10000, 0.0)
+    return monkeyBusiness(mks, 10000, 0.0)
 }
 
 func main() {
