@@ -1,9 +1,5 @@
 package main
 
-// This could be optimized a bit. I used a map to speed up lookup for sand grain positions,
-// I think there's room for more though. Ranges could be used to insert rock positions in the
-// map mentioned above also something similar to quadtrees could be used instead, but idk, this works bye...
-
 import (
     "os"
     "fmt"
@@ -31,10 +27,6 @@ type Pos struct {
     x, y int
 }
 
-func (p Pos) Equal(other Pos) bool {
-    return p.x == other.x && p.y == other.y
-}
-
 func (p Pos) Add(other Pos) Pos {
     return Pos {
         p.x + other.x,
@@ -47,13 +39,19 @@ type Range struct {
     vertical bool
 }
 
-func (r Range) includes(p Pos) bool {
+func (r Range) asPositions() (out []Pos) {
     if r.vertical {
         ymin, ymax := minmax(r.start.y, r.end.y)
-        return p.x == r.start.x && p.y >= ymin && p.y <= ymax
+        for y := ymin; y <= ymax; y++ {
+            out = append(out, Pos {r.start.x, y})
+        }
+        return out
     }
     xmin, xmax := minmax(r.start.x, r.end.x)
-    return p.y == r.start.y && p.x >= xmin && p.x <= xmax
+    for x := xmin; x <= xmax; x++ {
+        out = append(out, Pos {x, r.start.y})
+    }
+    return out
 }
 
 func readFile(path string) string {
@@ -96,33 +94,23 @@ func parseInput(input string) (ranges []Range) {
     return ranges
 }
 
-func fall(from Pos, ranges *[]Range, grains *map[Pos]bool) (Pos, bool) {
+func fall(from Pos, grains *map[Pos]bool) (Pos, bool) {
     down := Pos { 0, 1 }
     left := Pos { -1, 1 }
     right := Pos { 1, 1 }
 
-    fallStep := func(from, dir Pos) bool {
-        maybeInto := from.Add(dir)
-        for _, r := range *ranges {
-            if r.includes(maybeInto) || (*grains)[maybeInto] {
-                return false
-            }
-        }
-        return true
-    }
-
-    canFallMore := false
     to := from
+    canFallMore := true
 
-    if fallStep(to, down) {
-        canFallMore = true
+    switch {
+    case !(*grains)[from.Add(Pos { 0, 1 })]:
         to = to.Add(down)
-    } else if fallStep(to, left) {
-        canFallMore = true
+    case !(*grains)[from.Add(Pos { -1, 1 })]:
         to = to.Add(left)
-    } else if fallStep(to, right) {
-        canFallMore = true
+    case !(*grains)[from.Add(Pos { 1, 1 })]:
         to = to.Add(right)
+    default:
+        canFallMore = false
     }
 
     if !canFallMore {
@@ -133,30 +121,32 @@ func fall(from Pos, ranges *[]Range, grains *map[Pos]bool) (Pos, bool) {
 }
 
 func fallingSand(ranges []Range, voidThresh int) int {
-    source := Pos { 500, 0 }
-    sandPos := Pos {}
     deposited := 0
-
+    sandPos := Pos {}
+    source := Pos { 500, 0 }
     grains := make(map[Pos]bool)
 
-    intoTheVoid := false
-    for !sandPos.Equal(source) {
-        sandPos = source
-        canFallMore := false
-
-        for {
-            sandPos, canFallMore = fall(sandPos, &ranges, &grains)
-            intoTheVoid = sandPos.y > voidThresh
-            if !canFallMore || intoTheVoid {
-                break
-            }
+    for _, r := range ranges {
+        for _, p := range r.asPositions() {
+            grains[p] = true
         }
+    }
 
-        if intoTheVoid {
-            break
+    intoTheVoid := false;
+    for !(sandPos.x == source.x && sandPos.y == source.y) && !intoTheVoid {
+        sandPos = source
+        canFallMore := true
+
+        for canFallMore && !intoTheVoid {
+            sandPos, canFallMore = fall(sandPos, &grains)
+            intoTheVoid = sandPos.y > voidThresh
         }
 
         deposited++
+    }
+
+    if intoTheVoid {
+        deposited--
     }
 
     return deposited
