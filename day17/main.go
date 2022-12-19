@@ -138,8 +138,8 @@ func p1(input string, maxplacements int) int {
     return len(chamber) - height - 1
 }
 
-func p2(input string, maxplacements uint64) uint64 {
-    chamber := initChamber(100)
+func fallingRocks(input string, maxplacements uint64) uint64 {
+    chamber := initChamber(5000)
 
 	ii := 0
 	ri := 0
@@ -151,40 +151,35 @@ func p2(input string, maxplacements uint64) uint64 {
 
     patterns := make(map[StartingIds]PatternData)
 
-    flush := func() (uint64, int) {
-        if height <= 8 {
-            tmp := uint64(len(chamber) - 1 - height)
-            clearChamber(&chamber)
-            return incrementalHeight + tmp, len(chamber) - 1
-        }
-        return incrementalHeight, height
-    }
-
 	for {
+        if placed >= maxplacements {
+            break
+        }
+
 		ri = ri % len(rocks)
 		rock := rocks[ri]
 		rockH := len(rock)
 
         if !patternFound {
             sp := StartingIds { ri, ii, string(chamber[height]) }
-            fmt.Println(sp)
             patternFound = patterns[sp].placed != 0
             if !patternFound {
                 patterns[sp] = PatternData { placed, incrementalHeight }
             } else {
+                fmt.Println("pattern found")
                 patternData := patterns[sp]
                 placedDiff := placed - patternData.placed
                 heightDiff := incrementalHeight - patternData.height
-                q := maxplacements / placedDiff
-                patternsHeight = patternData.height + heightDiff * (q - 1)
-                placed = patternData.placed + placedDiff * (q - 1)
+                q := (maxplacements - patternData.placed) / placedDiff
+                r := (maxplacements - patternData.placed) % placedDiff
+                patternsHeight = patternData.height + heightDiff * q
+                placed = maxplacements - r
+                fmt.Println("placed pattern", placed, q, patternData.placed, patternData.height, incrementalHeight)
 
-                fmt.Println(placedDiff, heightDiff, q, patternsHeight, placed, incrementalHeight, patternData.height, patternData)
+                clearChamber(&chamber)
+                incrementalHeight = 0
+                height = len(chamber) - 1
             }
-        }
-
-        if uint64(placed) >= maxplacements  {
-            break
         }
 
 		x := 2
@@ -201,12 +196,16 @@ func p2(input string, maxplacements uint64) uint64 {
 		}
 
 		if y < height {
+            incrementalHeight += uint64(height - y)
 			height = y
 		}
 
 		drawRock(chamber, rock, x, y)
 
-        incrementalHeight, height = flush()
+        if height <= 8 {
+            clearChamber(&chamber)
+            height = len(chamber) - 1
+        }
 
 		ri++
 		placed++
@@ -216,7 +215,7 @@ func p2(input string, maxplacements uint64) uint64 {
 }
 
 func main() {
-	input := strings.TrimSpace(readFile("./input2.txt"))
-	fmt.Println(p1(input, 2022))
-	fmt.Println(p2(input, 1000000000000))
+    input := strings.TrimSpace(readFile("./input.txt"))
+	fmt.Println(fallingRocks(input, 2022))
+	fmt.Println(fallingRocks(input, 1000000000000))
 }
