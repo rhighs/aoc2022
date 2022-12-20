@@ -167,5 +167,5 @@ func p2(input string) int {
 func main() {
     input := strings.TrimSpace(readFile("./input.txt"))
     fmt.Println("p1:", p1(input))
-    fmt.Println("p1:", p2(input))
+    fmt.Println("p2:", p2(input))
 }
