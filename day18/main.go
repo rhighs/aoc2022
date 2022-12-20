@@ -84,9 +84,11 @@ func p1(input string) int {
     return surfaceArea(cubes)
 }
 
-func p2(input string, rayLen int) int {
+func p2(input string) int {
     cubes := parseInput(input)
     cubeMap := make(map[Cube]bool)
+    steamMap := make(map[Cube]bool)
+    var steam []Cube
 
     for _, cube := range cubes {
         cubeMap[cube] = true
@@ -119,48 +121,51 @@ func p2(input string, rayLen int) int {
         }
     }
 
-    enclosed := func (c Cube) bool {
-        dirsFound := make(map[int]bool)
-        for offset := 1; offset <= rayLen; offset++ {
-            if cubeMap[Cube { c.x + offset, c.y, c.z }] {
-                dirsFound[0] = true
-            }
-            if cubeMap[Cube { c.x - offset, c.y, c.z }] {
-                dirsFound[1] = true
-            }
-            if cubeMap[Cube { c.x, c.y + offset, c.z }] {
-                dirsFound[2] = true
-            }
-            if cubeMap[Cube { c.x, c.y - offset, c.z }] {
-                dirsFound[3] = true
-            }
-            if cubeMap[Cube { c.x, c.y, c.z + offset }] {
-                dirsFound[4] = true
-            }
-            if cubeMap[Cube { c.x, c.y, c.z - offset }] {
-                dirsFound[5] = true
-            }
-        }
-        return len(dirsFound) == 10
+    minx-=1 
+    miny-=1 
+    minz-=1 
+    maxx+=1 
+    maxy+=1 
+    maxz+=1 
+
+    var stack []Cube
+    stack = append(stack, Cube {0, 0, 0})
+
+    testCubes := []Cube{
+        Cube{1, 0, 0},
+        Cube{-1, 0, 0},
+        Cube{0, 1, 0},
+        Cube{0, -1, 0},
+        Cube{0, 0, 1},
+        Cube{0, 0, -1},
     }
 
-    for x := minx; x < maxx; x++ {
-        for y := miny; y < maxy; y++ {
-            for z := minz; z < maxz; z++ {
-                c := Cube{x, y, z}
-                if !cubeMap[c] && enclosed(c) {
-                    cubes = append(cubes, c)
-                    cubeMap[c] = true
-                }
+    for len(stack) > 0 {
+        cube := stack[0]
+        stack = stack[1:]
+
+        for _, t := range testCubes {
+            tc := t.Add(cube)
+            if !steamMap[tc] && !cubeMap[tc] && !(tc.x<minx || tc.y<miny || tc.z<minz || tc.x>maxx || tc.y>maxy || tc.z>maxz) {
+                stack = append(stack, tc)
+                steam = append(steam, tc)
+                steamMap[tc] = true
             }
         }
     }
 
-    return surfaceArea(cubes)
+    xlen := maxx-minx+1
+    ylen := maxy-miny+1
+    zlen := maxz-minz+1
+    f1 := xlen * ylen * 2
+    f2 := zlen * ylen * 2
+    f3 := zlen * xlen * 2
+    boxSurfaceArea := f1 + f2 + f3
+    return surfaceArea(steam) - boxSurfaceArea
 }
 
 func main() {
     input := strings.TrimSpace(readFile("./input.txt"))
-    fmt.Println(p1(input))
-    fmt.Println(p2(input, 20))
+    fmt.Println("p1:", p1(input))
+    fmt.Println("p1:", p2(input))
 }
