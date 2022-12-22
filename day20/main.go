@@ -8,11 +8,8 @@ import (
 	"strings"
 )
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
+type RingKey struct {
+	i, n int
 }
 
 func readFile(path string) string {
@@ -41,65 +38,63 @@ func intoRing(arr []int) *ring.Ring {
 	return r
 }
 
-func ringFind(r *ring.Ring, value any) *ring.Ring {
-	v, ok := value.(int)
-	if ok {
-		lr := r.Len()
-		for i := 0; i < lr; i++ {
-			if r.Value == v {
-				return r
-			}
-			r = r.Next()
+func intoHashedRings(arr []int) (map[RingKey]*ring.Ring, RingKey) {
+	out := make(map[RingKey]*ring.Ring)
+	r := intoRing(arr)
+	zk := RingKey{}
+	for i := 0; i < r.Len(); i++ {
+		n := r.Value.(int)
+		if n == 0 {
+			zk = RingKey{i, n}
 		}
-	}
-	return nil
-}
-
-func ringFindAll(r *ring.Ring, value any) (out []*ring.Ring) {
-	v, ok := value.(int)
-	if ok {
-		lr := r.Len()
-		for i := 0; i < lr; i++ {
-			if r.Value == v {
-				out = append(out, r)
-			}
-			r = r.Next()
-		}
-	}
-    return
-}
-
-func printRing(r *ring.Ring) {
-	lr := r.Len()
-	for i := 0; i < lr-1; i++ {
-		fmt.Print(r.Value, ",")
+		out[RingKey{i, n}] = r
 		r = r.Next()
 	}
-	fmt.Println(r.Value)
+	return out, zk
 }
 
-func p1(input string) int {
-	file := parseInput(input)
-	decrypted := intoRing(file)
+func decrypt(file []int, mixes int, decryptionKey int) int {
+    if decryptionKey != 0 {
+	    for i := range file {
+		    file[i] *= decryptionKey
+	    }
+    } 
 
-	for _, n := range file {
-		subr := ringFind(decrypted, n).Prev()
-		removed := subr.Unlink(1)
-		subr.Move(n).Link(removed)
+	hashedRings, zk := intoHashedRings(file)
+	l, hl := len(file)-1, len(file)/2
+
+	for k := 0; k < mixes; k++ {
+		for i, n := range file {
+			subr := hashedRings[RingKey{i, n}].Prev()
+			removed := subr.Unlink(1)
+
+			//https://github.com/python/cpython/blob/85dd6cb6df996b1197266d1a50ecc9187a91e481/Modules/_collectionsmodule.c#L764
+			if (n > hl) || (n < -hl) {
+				n %= l
+				if n > hl {
+					n -= l
+				} else if n < -hl {
+					n += l
+				}
+			}
+
+			subr.Move(n).Link(removed)
+		}
 	}
 
-	tot := 0
-	subr := ringFind(decrypted, 0)
+	s := 0
+	subr := hashedRings[zk]
 	for i := 0; i < 3; i++ {
 		subr = subr.Move(1000)
 		v, _ := subr.Value.(int)
-		tot += v
+		s += v
 	}
 
-	return tot
+	return s
 }
 
 func main() {
-	input := strings.TrimSpace(readFile("./input.txt"))
-	fmt.Println("p1:", p1(input))
+    file := parseInput(strings.TrimSpace(readFile("./input.txt")))
+	fmt.Println("p1:", decrypt(file, 1, 0))
+	fmt.Println("p2:", decrypt(file, 10, 811589153))
 }
