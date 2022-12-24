@@ -28,9 +28,9 @@ func readFile(path string) string {
 
 var directions []Pos = []Pos{
 	{1, 0},
-	{0, -1},
-	{-1, 0},
 	{0, 1},
+	{-1, 0},
+	{0, -1},
 }
 
 func parseInput(input string) ([]string, []any) {
@@ -54,12 +54,21 @@ func parseInput(input string) ([]string, []any) {
 		commands = append(commands, string(c))
 	}
 
+	if strnum != "" {
+		n, _ := strconv.Atoi(strnum)
+		commands = append(commands, n)
+		strnum = ""
+	}
+
 	return path, commands
 }
 
 func startH(path string) int {
 	d := strings.Index(path, ".")
 	h := strings.Index(path, "#")
+	if h == -1 {
+		return d
+	}
 	return min(d, h)
 }
 
@@ -154,8 +163,6 @@ func p1(input string) int {
 				} else {
 					goNext, pos.y = stepV(path, pos, startV(path, pos), endV(path, pos), directions[dir].y)
 				}
-				path[pos.y] = path[pos.y][pos.x-1:] + "X" + path[pos.y][:pos.x]
-				fmt.Println(pos)
 				if goNext {
 					break
 				}
@@ -177,14 +184,10 @@ func p1(input string) int {
 		}
 	}
 
-	for _, p := range path {
-		fmt.Println(p)
-	}
-	fmt.Println(pos, dir)
-	return 1000*(pos.y) + 4*(pos.x) + dir
+	return 1000*(pos.y+1) + 4*(pos.x+1) + dir
 }
 
 func main() {
-	input := readFile("./input2.txt")
-	fmt.Println(p1(input))
+	input := readFile("./input.txt")
+	fmt.Println("p1:", p1(input))
 }
