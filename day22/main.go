@@ -187,6 +187,44 @@ func p1(input string) int {
 	return 1000*(pos.y+1) + 4*(pos.x+1) + dir
 }
 
+/*
+Part two:
+
+Hardcoding my input into cube faces would look like:
+
+		+-----+-----+
+		|  6  |  6  |
+		|5 1 2|1 2 4|
+		|  3  |  3  |
+		+-----+-----+
+		|  1  |
+		|5 3 2|
+		|  4  |
+  +-----+-----+
+  |  3  |  3  |
+  |1 5 4|5 4 2|
+  |  6  |  6  |
+  +-----+-----+
+  |  5  |
+  |1 6 4|
+  |  2  |
+  +-----+
+
+When sections are not graphically neighbours to one another, coords must be mapped accordingly.
+(e.g. wrapping on positive x from section 2 gives a point on section 4. In this case it is needed to consider rotations as we are moving along a cube)
+
++------------+-------------------------------------------+-----------------------------------------+
+|   face     |               x wrapping                  |               y wrapping                |
++------------+-------------------------------------------+-----------------------------------------+
+|	1  		 |  wrapx+ = startx(5), wrapx- = startx(2),	 |  wrapy+ = starty(3), wrapy- = startx(6) |
+|	2  		 |  wrapx+ = endx(4), 	wrapx- = endx(1),	 |  wrapy+ = endx(3), 	wrapy- = endy(6)   |
+|	3  		 |  wrapx+ = endy(2), 	wrapx- = starty(5),  |  wrapy+ = endy(2), 	wrapy- = endy(1)   |
+|	4  		 |  wrapx+ = endx(2), 	wrapx- = endx(5),    |  wrapy+ = endx(6),   wrapy- = endy(3)   |
+|	5        |  wrapx+ = startx(4), wrapx- = startx(1),  |  wrapy+ = starty(6), wrapy- = startx(3) |
+|	6  		 |  wrapx+ = endy(4), 	wrapx- = starty(1),  |  wrapy+ = starty(2), wrapy- = endy(5)   |
++------------+-------------------------------------------+-----------------------------------------+
+*/
+
 func main() {
 	input := readFile("./input.txt")
 	fmt.Println("p1:", p1(input))
