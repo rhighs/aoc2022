@@ -8,7 +8,7 @@ import (
 
 // A grid is not necessary for this kind of problem as it is not a requirement.
 // However, I misunderstood the problem description and used a grid from the begging.
-// So i introduted a GRID_SIZE constant in order for it to large inputs, note this might not be
+// So i introduced a GRID_SIZE constant in order for it to fit large inputs, note that it might not be
 // ideal for very large inputs.
 const GRID_SIZE = 256
 
